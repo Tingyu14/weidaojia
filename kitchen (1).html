@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>味道家 · 後廚訂單顯示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1A1008;
+    --panel: #2A1A0C;
+    --border: rgba(196,129,58,0.25);
+    --gold: #C4813A;
+    --gold-light: #E8A84A;
+    --sand: #E8D8C0;
+    --muted: rgba(232,216,192,0.55);
+    --green: #2ECC71;
+    --orange: #E67E22;
+    --red: #E74C3C;
+    --blue: #3498DB;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--sand);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .h-title { font-family: 'Noto Serif TC', serif; font-size: 20px; color: var(--gold-light); letter-spacing: 3px; }
+  .h-sub { font-size: 12px; color: var(--muted); letter-spacing: 2px; margin-top: 2px; }
+  .h-right { display: flex; align-items: center; gap: 16px; }
+  .live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); animation: pulse 1.5s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.85)} }
+  .live-text { font-size: 12px; color: var(--green); letter-spacing: 1px; }
+  .refresh-btn {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--sand); padding: 6px 14px; font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer; transition: border-color 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+  .last-update { font-size: 11px; color: var(--muted); }
+
+  /* STATS */
+  .stats-bar {
+    display: flex; gap: 16px; padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .stat { flex-shrink: 0; }
+  .stat-val { font-size: 26px; font-weight: 700; font-family: 'Noto Serif TC', serif; }
+  .stat-lab { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+  .stat.pending .stat-val { color: var(--orange); }
+  .stat.done .stat-val { color: var(--green); }
+  .stat.total .stat-val { color: var(--gold-light); }
+  .stat-divider { width: 1px; background: var(--border); flex-shrink: 0; }
+
+  /* FILTERS */
+  .filter-bar {
+    display: flex; gap: 8px; padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    background: none; border: 1px solid var(--border); border-radius: 50px;
+    color: var(--muted); padding: 6px 16px; font-size: 13px;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .filter-btn.active {
+    background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 700;
+  }
+
+  /* ORDERS GRID */
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    padding: 20px 24px;
+  }
+
+  /* ORDER CARD */
+  .order-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .order-card.urgent { border-color: var(--red); }
+  .order-card.new { border-color: var(--orange); animation: newFlash 0.5s ease; }
+  @keyframes newFlash { 0%{box-shadow:0 0 0 0 rgba(230,126,34,0.6)} 100%{box-shadow:0 0 0 12px rgba(230,126,34,0)} }
+  .card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.03);
+  }
+  .order-num { font-family: 'Noto Serif TC', serif; font-size: 18px; color: var(--gold-light); font-weight: 700; }
+  .order-time { font-size: 12px; color: var(--muted); }
+  .status-badge {
+    font-size: 11px; font-weight: 700; padding: 4px 10px;
+    border-radius: 50px; letter-spacing: 0.5px;
+  }
+  .status-badge.pending { background: rgba(230,126,34,0.15); color: var(--orange); border: 1px solid rgba(230,126,34,0.4); }
+  .status-badge.preparing { background: rgba(52,152,219,0.15); color: var(--blue); border: 1px solid rgba(52,152,219,0.4); }
+  .status-badge.done { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid rgba(46,204,113,0.4); }
+  .card-info {
+    padding: 12px 16px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row { display: flex; flex-direction: column; gap: 2px; }
+  .info-label { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; }
+  .info-val { color: var(--sand); font-weight: 500; }
+  .info-val.highlight { color: var(--gold-light); }
+  .card-items { padding: 12px 16px; }
+  .items-title { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 8px; }
+  .item-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; border-bottom: 0.5px solid rgba(196,129,58,0.1); }
+  .item-row:last-child { border-bottom: none; }
+  .item-qty { color: var(--gold); font-weight: 700; min-width: 28px; }
+  .item-n { flex: 1; }
+  .card-note {
+    margin: 0 16px 12px;
+    background: rgba(230,126,34,0.08);
+    border: 1px solid rgba(230,126,34,0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--orange);
+  }
+  .card-note::before { content: '📝 '; }
+  .card-footer {
+    padding: 10px 16px;
+    display: flex; gap: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .action-btn {
+    flex: 1; border: none; border-radius: 8px;
+    padding: 9px; font-size: 13px; font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .action-btn:hover { opacity: 0.85; }
+  .btn-prep { background: var(--blue); color: white; }
+  .btn-done { background: var(--green); color: white; }
+  .btn-cancel { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid rgba(231,76,60,0.3); }
+  .total-chip {
+    background: rgba(196,129,58,0.15);
+    border: 1px solid rgba(196,129,58,0.3);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 13px;
+    color: var(--gold-light);
+    font-weight: 700;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+  .empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-text { font-size: 16px; }
+
+  /* SETUP BANNER */
+  .setup-banner {
+    background: rgba(52,152,219,0.1);
+    border: 1px solid rgba(52,152,219,0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 24px 0;
+    font-size: 13px;
+    color: #85C8F0;
+    line-height: 1.7;
+  }
+  .setup-banner strong { color: var(--blue); }
+
+  @media (max-width: 600px) {
+    .orders-grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+    .stats-bar { padding: 12px; }
+    header { padding: 12px; }
+    .h-title { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-title">味道家 後廚顯示</div>
+    <div class="h-sub">WEIDAOJIA KITCHEN DISPLAY</div>
+  </div>
+  <div class="h-right">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div class="live-dot"></div>
+      <span class="live-text">LIVE</span>
+    </div>
+    <div class="last-update" id="lastUpdate">—</div>
+    <button class="refresh-btn" onclick="loadOrders()">↻ 更新</button>
+  </div>
+</header>
+
+<div class="setup-banner" id="setupBanner">
+  ⚙️ <strong>設定提示：</strong>請將下方 <code>GAS_URL</code> 替換為您的 Google Apps Script 網址後，此頁面即可即時從 Google Sheets 拉取訂單。在設定完成前，頁面會顯示示範訂單。
+</div>
+
+<div class="stats-bar">
+  <div class="stat pending"><div class="stat-val" id="statPending">0</div><div class="stat-lab">待處理</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat" style="--val-color:var(--blue)"><div class="stat-val" style="color:var(--blue)" id="statPrep">0</div><div class="stat-lab">製作中</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat done"><div class="stat-val" id="statDone">0</div><div class="stat-lab">已完成</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat total"><div class="stat-val" id="statTotal">0</div><div class="stat-lab">今日總計</div></div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all',this)">全部</button>
+  <button class="filter-btn" onclick="setFilter('pending',this)">待處理</button>
+  <button class="filter-btn" onclick="setFilter('preparing',this)">製作中</button>
+  <button class="filter-btn" onclick="setFilter('done',this)">已完成</button>
+</div>
+
+<div class="orders-grid" id="ordersGrid">
+  <div class="empty-state">
+    <div class="empty-icon">🍳</div>
+    <div class="empty-text">目前無訂單</div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// ★ 請在這裡填入你的 Google Apps Script URL ★
+// =============================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec';
+
+let allOrders = [];
+let currentFilter = 'all';
+
+// Demo orders
+const demoOrders = [
+  { id:'#001', time:'12:05', name:'王大明', phone:'0912-345-001', people:'4 人', pickup:'內用', date:'2026-06-06', apptTime:'12:30', note:'花生過敏，不加辣', items:'三杯中卷 x1、椒鹽龍珠 x2、冷泡高山烏龍茶 x4', total:520, status:'pending' },
+  { id:'#002', time:'12:08', name:'陳小華', phone:'0987-654-002', people:'2 人', pickup:'內用', date:'2026-06-06', apptTime:'12:45', note:'', items:'極品螃蟹粉絲煲 x1、古早味紅茶 x2', total:560, status:'preparing' },
+  { id:'#003', time:'11:50', name:'林美玲', phone:'0956-789-003', people:'1 人', pickup:'外帶自取', date:'2026-06-06', apptTime:'12:15', note:'', items:'黃金炸豬排 x1、蘋果西打 x1', total:190, status:'done' },
+];
+
+function statusLabel(s) {
+  const m = { pending:'待處理', preparing:'製作中', done:'已完成' };
+  return m[s] || s;
+}
+
+function renderOrders(orders) {
+  const grid = document.getElementById('ordersGrid');
+  const filtered = currentFilter === 'all' ? orders : orders.filter(o => o.status === currentFilter);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🍳</div><div class="empty-text">目前無訂單</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(o => `
+    <div class="order-card ${o.status === 'pending' ? 'new' : ''}" id="card-${o.id}">
+      <div class="card-header">
+        <div>
+          <div class="order-num">${o.id}</div>
+          <div class="order-time">下單時間：${o.time}</div>
+        </div>
+        <span class="status-badge ${o.status}">${statusLabel(o.status)}</span>
+      </div>
+      <div class="card-info">
+        <div class="info-row"><span class="info-label">姓名</span><span class="info-val">${o.name}</span></div>
+        <div class="info-row"><span class="info-label">電話</span><span class="info-val">${o.phone}</span></div>
+        <div class="info-row"><span class="info-label">人數</span><span class="info-val highlight">${o.people}</span></div>
+        <div class="info-row"><span class="info-label">取餐方式</span><span class="info-val highlight">${o.pickup}</span></div>
+        <div class="info-row"><span class="info-label">日期</span><span class="info-val">${o.date}</span></div>
+        <div class="info-row"><span class="info-label">預計時間</span><span class="info-val highlight">${o.apptTime}</span></div>
+      </div>
+      <div class="card-items">
+        <div class="items-title">點餐明細</div>
+        ${o.items.split('、').map(item => {
+          const parts = item.trim().split(' x');
+          return `<div class="item-row"><span class="item-qty">x${parts[1]||1}</span><span class="item-n">${parts[0]}</span></div>`;
+        }).join('')}
+      </div>
+      ${o.note ? `<div class="card-note">${o.note}</div>` : ''}
+      <div class="card-footer">
+        ${o.status === 'pending' ? `<button class="action-btn btn-prep" onclick="updateStatus('${o.id}','preparing')">開始製作</button>` : ''}
+        ${o.status === 'preparing' ? `<button class="action-btn btn-done" onclick="updateStatus('${o.id}','done')">完成出餐</button>` : ''}
+        ${o.status === 'done' ? `<div style="flex:1;font-size:13px;color:var(--green);text-align:center;align-self:center;">✓ 已完成</div>` : ''}
+        <div class="total-chip">$${Number(o.total).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStats(orders) {
+  document.getElementById('statPending').textContent = orders.filter(o=>o.status==='pending').length;
+  document.getElementById('statPrep').textContent = orders.filter(o=>o.status==='preparing').length;
+  document.getElementById('statDone').textContent = orders.filter(o=>o.status==='done').length;
+  document.getElementById('statTotal').textContent = orders.length;
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderOrders(allOrders);
+}
+
+async function loadOrders() {
+  document.getElementById('lastUpdate').textContent = '更新中…';
+
+  if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    // Demo mode
+    allOrders = [...demoOrders];
+    renderOrders(allOrders);
+    updateStats(allOrders);
+    document.getElementById('lastUpdate').textContent = '示範模式 · ' + new Date().toLocaleTimeString('zh-TW');
+    return;
+  }
+
+  try {
+    const res = await fetch(GAS_URL + '?action=getOrders');
+    const data = await res.json();
+    allOrders = data.orders || [];
+    renderOrders(allOrders);
+    updateStats(allOrders);
+    document.getElementById('lastUpdate').textContent = '最後更新：' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) {
+    document.getElementById('lastUpdate').textContent = '更新失敗';
+  }
+}
+
+async function updateStatus(id, newStatus) {
+  // Find locally
+  const o = allOrders.find(x => x.id === id);
+  if (o) o.status = newStatus;
+
+  if (GAS_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    try {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', id, status: newStatus })
+      });
+    } catch(e) {}
+  }
+
+  renderOrders(allOrders);
+  updateStats(allOrders);
+}
+
+// Initial load + auto-refresh every 30 seconds
+loadOrders();
+setInterval(loadOrders, 30000);
+</script>
+</body>
+</html>
