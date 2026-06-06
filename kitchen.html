@@ -216,7 +216,7 @@
   </div>
 </header>
 
-<div class="setup-banner" id="setupBanner">
+<div class="setup-banner" id="setupBanner" style="display:none">
   ⚙️ <strong>設定提示：</strong>請將下方 <code>GAS_URL</code> 替換為您的 Google Apps Script 網址後，此頁面即可即時從 Google Sheets 拉取訂單。在設定完成前，頁面會顯示示範訂單。
 </div>
 
@@ -246,7 +246,7 @@
 
 <script>
 // =============================================
-//https://tingyu14.github.io/weidaojia/kitchen.html
+// ★ 請在這裡填入你的 Google Apps Script URL ★
 // =============================================
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec';
 
@@ -326,15 +326,6 @@ function setFilter(f, btn) {
 async function loadOrders() {
   document.getElementById('lastUpdate').textContent = '更新中…';
 
-  if (GAS_URL === 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec') {
-    // Demo mode
-    allOrders = [...demoOrders];
-    renderOrders(allOrders);
-    updateStats(allOrders);
-    document.getElementById('lastUpdate').textContent = '示範模式 · ' + new Date().toLocaleTimeString('zh-TW');
-    return;
-  }
-
   try {
     const res = await fetch(GAS_URL + '?action=getOrders');
     const data = await res.json();
@@ -352,7 +343,7 @@ async function updateStatus(id, newStatus) {
   const o = allOrders.find(x => x.id === id);
   if (o) o.status = newStatus;
 
-  if (GAS_URL !== 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec') {
+  if (GAS_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
     try {
       await fetch(GAS_URL, {
         method: 'POST',
