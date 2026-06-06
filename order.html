@@ -471,7 +471,7 @@
 
 <script>
 // =============================================
-// https://github.com/Tingyu14/weidaojia
+// ★ 請在這裡填入你的 Google Apps Script URL ★
 // =============================================
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec';
 
@@ -560,14 +560,6 @@ async function submitOrder() {
     alert('請至少選擇一個品項');
     return;
   }
-  if (GAS_URL === 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec') {
-    // Demo mode
-    document.getElementById('successMsg').innerHTML =
-      `感謝 <strong>${name}</strong>！<br>訂單示範已完成。<br>請依照設定說明完成後端設定後即可正式使用。`;
-    document.getElementById('successOverlay').classList.add('show');
-    return;
-  }
-
   const itemsText = Object.entries(cart).map(([n,q]) => `${n} x${q}`).join('、');
   const total = Object.entries(cart).reduce((s,[n,q]) => s + prices[n]*q, 0);
 
