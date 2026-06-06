@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>味道家 · 線上點餐</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brown: #8B4A1C;
+    --brown-dark: #5C2E0A;
+    --brown-light: #C4813A;
+    --sand: #E8D8C0;
+    --sand-light: #F5EDE0;
+    --sand-pale: #FAF5EE;
+    --text: #2C1A0E;
+    --text-muted: #7A5C3E;
+    --border: rgba(139,74,28,0.2);
+    --white: #FFFDF9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--sand-pale);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--brown);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(92,46,10,0.3);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo-area { display: flex; align-items: center; gap: 12px; }
+  .logo-area img { height: 44px; width: 44px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,0.1); padding: 2px; }
+  .logo-text { color: var(--sand); font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 700; letter-spacing: 3px; }
+  .logo-sub { color: rgba(232,216,192,0.7); font-size: 11px; letter-spacing: 4px; margin-top: 1px; }
+  .cart-btn {
+    background: var(--brown-light);
+    border: none;
+    border-radius: 50px;
+    padding: 8px 18px;
+    color: var(--white);
+    font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .cart-btn:hover { background: var(--brown-dark); }
+  .cart-count {
+    background: #E8D8C0;
+    color: var(--brown-dark);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* CATEGORY NAV */
+  .cat-nav {
+    background: var(--brown-dark);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cat-nav::-webkit-scrollbar { display: none; }
+  .cat-nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    padding: 0 12px;
+  }
+  .cat-btn {
+    background: none;
+    border: none;
+    color: rgba(232,216,192,0.65);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .cat-btn.active, .cat-btn:hover {
+    color: var(--sand);
+    border-bottom-color: var(--brown-light);
+  }
+
+  /* MAIN LAYOUT */
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 120px; }
+
+  /* SECTION */
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--border);
+  }
+  .section-title span { font-size: 22px; }
+
+  /* MENU GRID */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .menu-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .menu-item:hover { box-shadow: 0 4px 16px rgba(139,74,28,0.12); transform: translateY(-1px); }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-price { font-size: 16px; font-weight: 700; color: var(--brown); font-family: 'Noto Serif TC', serif; }
+  .item-controls { display: flex; align-items: center; gap: 6px; }
+  .qty-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--brown-light);
+    background: none;
+    color: var(--brown);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-family: 'Noto Sans TC', sans-serif;
+    line-height: 1;
+  }
+  .qty-btn:hover { background: var(--brown); color: var(--sand); border-color: var(--brown); }
+  .qty-display { font-size: 15px; font-weight: 700; min-width: 22px; text-align: center; color: var(--text); }
+
+  /* CART PANEL */
+  .cart-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--white);
+    border-top: 1.5px solid var(--border);
+    transform: translateY(calc(100% - 68px));
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    z-index: 200;
+    box-shadow: 0 -4px 24px rgba(92,46,10,0.15);
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .cart-panel.open { transform: translateY(0); }
+  .cart-handle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .cart-handle-title { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 700; color: var(--brown); display: flex; align-items: center; gap: 8px; }
+  .cart-total-preview { font-size: 18px; font-weight: 700; color: var(--brown-dark); font-family: 'Noto Serif TC', serif; }
+  .cart-body { overflow-y: auto; padding: 0 20px 20px; flex: 1; }
+  .cart-items { margin-bottom: 16px; }
+  .cart-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 14px;
+  }
+  .cart-item-name { flex: 1; color: var(--text); }
+  .cart-item-qty { color: var(--text-muted); margin: 0 8px; }
+  .cart-item-price { color: var(--brown); font-weight: 600; min-width: 56px; text-align: right; }
+  .cart-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .cart-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--brown-dark);
+    border-top: 1.5px solid var(--border);
+    margin-top: 4px;
+  }
+
+  /* CUSTOMER FORM */
+  .form-section { margin-top: 20px; }
+  .form-title { font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 700; color: var(--brown); margin-bottom: 12px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
+  input, select, textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--text);
+    background: var(--sand-pale);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--brown-light); background: var(--white); }
+  textarea { resize: none; height: 64px; }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--brown);
+    color: var(--sand);
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 16px;
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 16px;
+    letter-spacing: 2px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .submit-btn:hover { background: var(--brown-dark); }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:disabled { background: var(--text-muted); cursor: not-allowed; }
+
+  /* SUCCESS */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(92,46,10,0.7);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .success-overlay.show { display: flex; }
+  .success-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+  }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-title { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 700; color: var(--brown); margin-bottom: 8px; }
+  .success-msg { color: var(--text-muted); font-size: 14px; line-height: 1.8; margin-bottom: 24px; }
+  .success-close {
+    background: var(--brown); color: var(--sand); border: none;
+    border-radius: 10px; padding: 12px 32px; font-size: 15px;
+    font-family: 'Noto Serif TC', serif; cursor: pointer; letter-spacing: 1px;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(92,46,10,0.5);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 4px solid var(--sand);
+    border-top-color: var(--brown-light);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* EMPTY CART */
+  .empty-cart { text-align: center; color: var(--text-muted); padding: 24px; font-size: 14px; }
+
+  @media (max-width: 480px) {
+    .menu-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .header-inner { padding: 12px 14px; }
+    .logo-text { font-size: 18px; }
+    .container { padding: 16px 12px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-text">味道家</div>
+      <div style="display:flex;flex-direction:column;">
+        <div class="logo-sub">WEIDAOJIA</div>
+      </div>
+    </div>
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 購物車 <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+  <div class="cat-nav">
+    <div class="cat-nav-inner">
+      <button class="cat-btn active" onclick="scrollTo('sec-1',this)">👑 壓箱寶</button>
+      <button class="cat-btn" onclick="scrollTo('sec-2',this)">🔥 灶頭熱炒</button>
+      <button class="cat-btn" onclick="scrollTo('sec-3',this)">🍤 點心小炸</button>
+      <button class="cat-btn" onclick="scrollTo('sec-4',this)">🍹 沁涼飲品</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- 阿嬤的壓箱寶 -->
+  <div class="section" id="sec-1">
+    <div class="section-title"><span>👑</span>阿嬤的壓箱寶</div>
+    <div class="menu-grid">
+      <div class="menu-item"><div class="item-info"><div class="item-name">極品螃蟹粉絲煲</div><div class="item-price">$480</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">避風塘炒蟹</div><div class="item-price">$450</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">蒜香烤生蠔（份）</div><div class="item-price">$300</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">紅燒黃魚家庭餐</div><div class="item-price">$280</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">剝皮辣椒雞湯</div><div class="item-price">$350</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">無花果排骨暖心湯</div><div class="item-price">$80</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">家常黃金蜆湯</div><div class="item-price">$60</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+    </div>
+  </div>
+
+  <!-- 灶頭熱炒 -->
+  <div class="section" id="sec-2">
+    <div class="section-title"><span>🔥</span>灶頭熱炒</div>
+    <div class="menu-grid">
+      <div class="menu-item"><div class="item-info"><div class="item-name">經典豆酥鱈魚</div><div class="item-price">$320</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">三杯中卷</div><div class="item-price">$280</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">泰式涼拌海鮮</div><div class="item-price">$280</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">經典鳳梨蝦球</div><div class="item-price">$250</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">塔香辣炒海瓜子</div><div class="item-price">$220</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">鐵板黑椒牛柳</div><div class="item-price">$260</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">滋滋作響三杯土雞</div><div class="item-price">$250</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">秘製糖醋排骨</div><div class="item-price">$220</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+    </div>
+  </div>
+
+  <!-- 點心小炸 -->
+  <div class="section" id="sec-3">
+    <div class="section-title"><span>🍤</span>點心小炸</div>
+    <div class="menu-grid">
+      <div class="menu-item"><div class="item-info"><div class="item-name">厚切月亮蝦餅</div><div class="item-price">$240</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">脆皮炸肥腸</div><div class="item-price">$200</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">酥炸蚵仔酥</div><div class="item-price">$180</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">椒鹽龍珠</div><div class="item-price">$180</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">夜市炸花枝酥</div><div class="item-price">$160</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">黃金炸豬排</div><div class="item-price">$150</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">手打酥炸花枝丸</div><div class="item-price">$150</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+    </div>
+  </div>
+
+  <!-- 沁涼飲品 -->
+  <div class="section" id="sec-4">
+    <div class="section-title"><span>🍹</span>沁涼飲品</div>
+    <div class="menu-grid">
+      <div class="menu-item"><div class="item-info"><div class="item-name">冷泡高山烏龍茶</div><div class="item-price">$60</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">新鮮現榨檸檬汁</div><div class="item-price">$60</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">解膩桂花烏梅汁</div><div class="item-price">$50</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">古早味紅茶</div><div class="item-price">$40</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">蘋果西打</div><div class="item-price">$40</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+      <div class="menu-item"><div class="item-info"><div class="item-name">經典台灣啤酒</div><div class="item-price">$80</div></div><div class="item-controls"><button class="qty-btn" onclick="changeQty(this,-1)">−</button><span class="qty-display">0</span><button class="qty-btn" onclick="changeQty(this,1)">＋</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-handle" onclick="toggleCart()">
+    <div class="cart-handle-title">🛒 已選品項 <span id="cartHandleCount" style="font-size:13px;color:var(--text-muted);font-family:'Noto Sans TC',sans-serif;font-weight:400;"></span></div>
+    <div class="cart-total-preview" id="cartTotalPreview">$0</div>
+  </div>
+  <div class="cart-body">
+    <div class="cart-items" id="cartItems">
+      <div class="empty-cart">尚未選擇任何品項</div>
+    </div>
+    <div class="cart-total-row"><span>合計</span><span id="cartTotal">$0</span></div>
+
+    <!-- Customer Form -->
+    <div class="form-section">
+      <div class="form-title">📝 訂單資訊</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>姓名 *</label>
+          <input type="text" id="custName" placeholder="王小明">
+        </div>
+        <div class="form-group">
+          <label>聯絡電話 *</label>
+          <input type="tel" id="custPhone" placeholder="0912-345-678">
+        </div>
+        <div class="form-group">
+          <label>用餐人數 *</label>
+          <select id="custPeople">
+            <option value="">請選擇</option>
+            <option>1 人</option><option>2 人</option><option>3 人</option>
+            <option>4 人</option><option>5 人</option><option>6 人</option>
+            <option>7 人</option><option>8 人</option><option>9 人以上</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>取餐方式 *</label>
+          <select id="custPickup">
+            <option value="">請選擇</option>
+            <option>內用</option>
+            <option>外帶自取</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>日期 *</label>
+          <input type="date" id="custDate">
+        </div>
+        <div class="form-group">
+          <label>預計時間 *</label>
+          <input type="time" id="custTime">
+        </div>
+        <div class="form-group full">
+          <label>備註（口味、過敏、特殊需求）</label>
+          <textarea id="custNote" placeholder="例：不加辣、花生過敏…"></textarea>
+        </div>
+      </div>
+      <button class="submit-btn" id="submitBtn" onclick="submitOrder()">確認送出訂單</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlays -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">訂單已送出！</div>
+    <div class="success-msg" id="successMsg">感謝您的訂購！<br>我們已收到您的訂單，稍後將由店員確認。</div>
+    <button class="success-close" onclick="closeSuccess()">好的，期待用餐！</button>
+  </div>
+</div>
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<script>
+// =============================================
+// ★ 請在這裡填入你的 Google Apps Script URL ★
+// =============================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec';
+
+const cart = {};
+
+const prices = {
+  '極品螃蟹粉絲煲':480,'避風塘炒蟹':450,'蒜香烤生蠔（份）':300,
+  '紅燒黃魚家庭餐':280,'剝皮辣椒雞湯':350,'無花果排骨暖心湯':80,'家常黃金蜆湯':60,
+  '經典豆酥鱈魚':320,'三杯中卷':280,'泰式涼拌海鮮':280,'經典鳳梨蝦球':250,
+  '塔香辣炒海瓜子':220,'鐵板黑椒牛柳':260,'滋滋作響三杯土雞':250,'秘製糖醋排骨':220,
+  '厚切月亮蝦餅':240,'脆皮炸肥腸':200,'酥炸蚵仔酥':180,'椒鹽龍珠':180,
+  '夜市炸花枝酥':160,'黃金炸豬排':150,'手打酥炸花枝丸':150,
+  '冷泡高山烏龍茶':60,'新鮮現榨檸檬汁':60,'解膩桂花烏梅汁':50,
+  '古早味紅茶':40,'蘋果西打':40,'經典台灣啤酒':80
+};
+
+// Set today as min date
+document.getElementById('custDate').min = new Date().toISOString().split('T')[0];
+
+function changeQty(btn, delta) {
+  const controls = btn.parentElement;
+  const display = controls.querySelector('.qty-display');
+  const nameEl = btn.closest('.menu-item').querySelector('.item-name');
+  const name = nameEl.textContent;
+  let qty = parseInt(display.textContent) + delta;
+  if (qty < 0) qty = 0;
+  display.textContent = qty;
+  if (qty === 0) delete cart[name];
+  else cart[name] = qty;
+  updateCart();
+}
+
+function updateCart() {
+  const total = Object.entries(cart).reduce((s,[n,q]) => s + prices[n]*q, 0);
+  const count = Object.values(cart).reduce((s,q) => s+q, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotalPreview').textContent = '$' + total.toLocaleString();
+  document.getElementById('cartTotal').textContent = '$' + total.toLocaleString();
+  document.getElementById('cartHandleCount').textContent = count > 0 ? `(${count}項)` : '';
+
+  const itemsEl = document.getElementById('cartItems');
+  if (Object.keys(cart).length === 0) {
+    itemsEl.innerHTML = '<div class="empty-cart">尚未選擇任何品項</div>';
+    return;
+  }
+  itemsEl.innerHTML = Object.entries(cart).map(([name, qty]) =>
+    `<div class="cart-item">
+      <span class="cart-item-name">${name}</span>
+      <span class="cart-item-qty">× ${qty}</span>
+      <span class="cart-item-price">$${(prices[name]*qty).toLocaleString()}</span>
+      <button class="cart-remove" onclick="removeItem('${name}')">✕</button>
+    </div>`
+  ).join('');
+}
+
+function removeItem(name) {
+  const qty = cart[name] || 0;
+  delete cart[name];
+  // Reset display on page
+  document.querySelectorAll('.item-name').forEach(el => {
+    if (el.textContent === name) {
+      el.closest('.menu-item').querySelector('.qty-display').textContent = '0';
+    }
+  });
+  updateCart();
+}
+
+function toggleCart() {
+  document.getElementById('cartPanel').classList.toggle('open');
+}
+
+async function submitOrder() {
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const people = document.getElementById('custPeople').value;
+  const pickup = document.getElementById('custPickup').value;
+  const date = document.getElementById('custDate').value;
+  const time = document.getElementById('custTime').value;
+  const note = document.getElementById('custNote').value.trim();
+
+  if (!name || !phone || !people || !pickup || !date || !time) {
+    alert('請填寫所有必填欄位（姓名、電話、人數、取餐方式、日期、時間）');
+    return;
+  }
+  if (Object.keys(cart).length === 0) {
+    alert('請至少選擇一個品項');
+    return;
+  }
+  if (GAS_URL === 'https://script.google.com/macros/s/AKfycbxD0jpfdsE03DmLsGf45O572Lw9hmFGPlzLrkimQmFak_VaRs-j4ET2Fw0Ze98jnolK/exec') {
+    // Demo mode
+    document.getElementById('successMsg').innerHTML =
+      `感謝 <strong>${name}</strong>！<br>訂單示範已完成。<br>請依照設定說明完成後端設定後即可正式使用。`;
+    document.getElementById('successOverlay').classList.add('show');
+    return;
+  }
+
+  const itemsText = Object.entries(cart).map(([n,q]) => `${n} x${q}`).join('、');
+  const total = Object.entries(cart).reduce((s,[n,q]) => s + prices[n]*q, 0);
+
+  const payload = { name, phone, people, pickup, date, time, note, items: itemsText, total };
+
+  document.getElementById('loadingOverlay').classList.add('show');
+  document.getElementById('submitBtn').disabled = true;
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('successMsg').innerHTML =
+      `感謝 <strong>${name}</strong> 的訂購！<br>我們將盡快確認您的訂單。<br>如有問題請撥打店內電話。`;
+    document.getElementById('successOverlay').classList.add('show');
+  } catch(e) {
+    alert('送出失敗，請稍後再試或直接致電訂位。');
+    document.getElementById('submitBtn').disabled = false;
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+function closeSuccess() {
+  document.getElementById('successOverlay').classList.remove('show');
+  document.getElementById('cartPanel').classList.remove('open');
+  // Reset everything
+  Object.keys(cart).forEach(k => delete cart[k]);
+  document.querySelectorAll('.qty-display').forEach(el => el.textContent = '0');
+  ['custName','custPhone','custNote','custDate','custTime'].forEach(id => document.getElementById(id).value = '');
+  ['custPeople','custPickup'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('submitBtn').disabled = false;
+  updateCart();
+}
+
+function scrollTo(id, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
