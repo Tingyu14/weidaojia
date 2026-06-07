@@ -601,7 +601,10 @@ function closeSuccess() {
 function scrollToSec(id, btn) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const el = document.getElementById(id);
+  const headerH = document.querySelector('header').offsetHeight;
+  const top = el.getBoundingClientRect().top + window.scrollY - headerH - 12;
+  window.scrollTo({ top: top, behavior: 'smooth' });
 }
 </script>
 </body>
