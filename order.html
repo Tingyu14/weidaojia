@@ -331,10 +331,10 @@
   </div>
   <div class="cat-nav">
     <div class="cat-nav-inner">
-      <button class="cat-btn active" onclick="scrollTo('sec-1',this)">👑 壓箱寶</button>
-      <button class="cat-btn" onclick="scrollTo('sec-2',this)">🔥 灶頭熱炒</button>
-      <button class="cat-btn" onclick="scrollTo('sec-3',this)">🍤 點心小炸</button>
-      <button class="cat-btn" onclick="scrollTo('sec-4',this)">🍹 沁涼飲品</button>
+      <button class="cat-btn active" onclick="scrollToSec('sec-1',this)">👑 壓箱寶</button>
+      <button class="cat-btn" onclick="scrollToSec('sec-2',this)">🔥 灶頭熱炒</button>
+      <button class="cat-btn" onclick="scrollToSec('sec-3',this)">🍤 點心小炸</button>
+      <button class="cat-btn" onclick="scrollToSec('sec-4',this)">🍹 沁涼飲品</button>
     </div>
   </div>
 </header>
@@ -598,7 +598,7 @@ function closeSuccess() {
   updateCart();
 }
 
-function scrollTo(id, btn) {
+function scrollToSec(id, btn) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
