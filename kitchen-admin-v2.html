@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>味道家 · 後廚管理系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brown: #8B4A1C;
+  --brown-dark: #5C2E0A;
+  --brown-light: #C4813A;
+  --sand: #E8D8C0;
+  --sand-light: #F5EDE0;
+  --sand-pale: #FAF5EE;
+  --text: #2C1A0E;
+  --text-muted: #7A5C3E;
+  --border: rgba(139,74,28,0.2);
+  --white: #FFFDF9;
+  --green: #4A7C59;
+  --green-light: #E8F3EC;
+  --red: #B84444;
+  --red-light: #FDEAEA;
+  --yellow: #C49A1C;
+  --yellow-light: #FDF6E3;
+  --blue: #3A6B8A;
+  --blue-light: #E8F0F7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans TC', sans-serif; background: var(--sand-pale); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+header {
+  background: var(--brown);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(92,46,10,0.3);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo-text { color: var(--sand); font-family: 'Noto Serif TC', serif; font-size: 20px; font-weight: 700; letter-spacing: 3px; }
+.logo-sub { color: rgba(232,216,192,0.7); font-size: 10px; letter-spacing: 4px; margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-badge {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(232,216,192,0.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  color: var(--sand);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.header-time { color: rgba(232,216,192,0.8); font-size: 13px; font-family: monospace; letter-spacing: 1px; }
+
+/* TAB NAV */
+.tab-nav {
+  background: var(--brown-dark);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  padding: 0 16px;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  color: rgba(232,216,192,0.6);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px;
+  padding: 11px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab-btn.active, .tab-btn:hover {
+  color: var(--sand);
+  border-bottom-color: var(--brown-light);
+}
+
+/* MAIN */
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px 60px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* SECTION */
+.section { margin-bottom: 28px; }
+.section-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--border);
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--brown-light);
+}
+.stat-card.green::before { background: var(--green); }
+.stat-card.red::before { background: var(--red); }
+.stat-card.yellow::before { background: var(--yellow); }
+.stat-card.blue::before { background: var(--blue); }
+.stat-label { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
+.stat-value { font-family: 'Noto Serif TC', serif; font-size: 28px; font-weight: 700; color: var(--text); }
+.stat-unit { font-size: 13px; color: var(--text-muted); margin-left: 4px; }
+.stat-change { font-size: 12px; margin-top: 4px; }
+.stat-change.up { color: var(--green); }
+.stat-change.down { color: var(--red); }
+
+/* TABLE */
+.table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.table-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.table-header-title { font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 700; color: var(--brown); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  background: var(--sand-light);
+  color: var(--text-muted);
+  font-weight: 500;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--sand-pale); }
+
+/* BADGE */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+.badge-brown { background: var(--sand); color: var(--brown-dark); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+
+/* FORM ELEMENTS */
+.form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+.form-group.grow { flex: 1; }
+label { font-size: 12px; color: var(--text-muted); letter-spacing: 0.5px; }
+input, select, textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text);
+  background: var(--sand-pale);
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--brown-light); background: var(--white); }
+textarea { resize: vertical; min-height: 72px; }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--brown); color: var(--sand); }
+.btn-primary:hover { background: var(--brown-dark); }
+.btn-outline { background: none; border: 1.5px solid var(--border); color: var(--text-muted); }
+.btn-outline:hover { border-color: var(--brown-light); color: var(--brown); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+/* GRID 2-col */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* CHART BAR */
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 12px; color: var(--text-muted); width: 90px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; background: var(--sand); border-radius: 4px; height: 22px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; color: var(--white); transition: width 0.6s ease; }
+.bar-fill.brown { background: var(--brown-light); }
+.bar-fill.green { background: var(--green); }
+.bar-fill.blue { background: var(--blue); }
+.bar-num { font-size: 12px; color: var(--text-muted); width: 50px; text-align: right; flex-shrink: 0; }
+
+/* PROGRESS */
+.progress-wrap { margin-bottom: 6px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.progress-track { height: 8px; background: var(--sand); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; }
+.progress-fill.green { background: var(--green); }
+.progress-fill.yellow { background: var(--yellow); }
+.progress-fill.red { background: var(--red); }
+
+/* CARD */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.card-title { font-family: 'Noto Serif TC', serif; font-size: 15px; font-weight: 700; color: var(--brown); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+
+/* LOG ENTRY */
+.log-entry {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: var(--white);
+}
+.log-entry-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+.log-entry-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.log-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.log-meta-item { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+
+/* FEEDBACK STARS */
+.stars { display: flex; gap: 3px; }
+.star { font-size: 16px; color: #DDD; cursor: pointer; transition: color 0.1s; }
+.star.filled { color: #F5A623; }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(92,46,10,0.6);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.modal-title { font-family: 'Noto Serif TC', serif; font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--brown-dark);
+  color: var(--sand);
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  max-width: 280px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* PEAK HOURS */
+.peak-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; }
+.peak-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--sand);
+  cursor: default;
+  transition: transform 0.1s;
+}
+.peak-cell:hover { transform: scale(1.1); }
+.peak-cell.hot-1 { background: #F5E6D3; color: var(--brown); }
+.peak-cell.hot-2 { background: #DEB887; color: var(--brown-dark); }
+.peak-cell.hot-3 { background: var(--brown-light); color: var(--white); }
+.peak-cell.hot-4 { background: var(--brown); color: var(--sand); }
+.peak-hours-legend { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+/* INVENTORY INDICATOR */
+.stock-indicator { display: flex; align-items: center; gap: 6px; }
+.stock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 16px; }
+.timeline-dot { position: absolute; left: -20px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--brown-light); border: 2px solid var(--white); }
+.timeline-dot.green { background: var(--green); }
+.timeline-dot.red { background: var(--red); }
+.timeline-time { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+.timeline-text { font-size: 13px; color: var(--text); }
+
+/* FEEDBACK CARD */
+.feedback-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.feedback-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.feedback-name { font-size: 14px; font-weight: 600; }
+.feedback-score { display: flex; align-items: center; gap: 4px; }
+.feedback-score .star-display { color: #F5A623; font-size: 14px; }
+.feedback-text { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+.feedback-tag { display: inline-flex; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-top: 8px; }
+
+/* WASTE CARD */
+.waste-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--sand-pale);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .header-inner { padding: 10px 14px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="logo-text">味道家 · 後廚管理</div>
+      <div class="logo-sub">KITCHEN MANAGEMENT SYSTEM</div>
+    </div>
+    <div class="header-right">
+      <span class="header-badge">👨‍🍳 後廚模式</span>
+      <span class="header-time" id="liveTime">--:--:--</span>
+    </div>
+  </div>
+  <div class="tab-nav">
+    <div class="tab-nav-inner">
+      <button class="tab-btn active" onclick="switchTab('sales',this)">📊 銷售紀錄</button>
+      <button class="tab-btn" onclick="switchTab('inventory',this)">📦 庫存管理</button>
+      <button class="tab-btn" onclick="switchTab('prep',this)">🍲 備料熬煮日誌</button>
+      <button class="tab-btn" onclick="switchTab('waste',this)">🗑️ 報廢耗損紀錄</button>
+      <button class="tab-btn" onclick="switchTab('feedback',this)">💬 顧客回饋</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ======================================== -->
+  <!-- TAB 1: 銷售紀錄                          -->
+  <!-- ======================================== -->
+  <div class="tab-panel active" id="tab-sales">
+
+    <!-- 儀表板統計 -->
+    <div class="section">
+      <div class="section-title"><span>📊</span>今日儀表板</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">今日營業額</div>
+          <div class="stat-value">$<span id="todayRevenue">12,480</span></div>
+          <div class="stat-change up">↑ 比昨日 +8.3%</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">今日訂單數</div>
+          <div class="stat-value"><span id="todayOrders">47</span><span class="stat-unit">筆</span></div>
+          <div class="stat-change up">↑ 比昨日 +5 筆</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-label">平均客單價</div>
+          <div class="stat-value">$<span id="avgOrder">265</span></div>
+          <div class="stat-change up">↑ 比昨日 +$12</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">未取餐數</div>
+          <div class="stat-value"><span id="unclaimed">3</span><span class="stat-unit">筆</span></div>
+          <div class="stat-change down">需盡速處理</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">本週累計</div>
+          <div class="stat-value">$<span>68,240</span></div>
+          <div class="stat-change up">↑ 比上週 +12%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">本月累計</div>
+          <div class="stat-value">$<span>234,560</span></div>
+          <div class="stat-change up">↑ 目標達成率 78%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px;">
+      <!-- 熱銷品項排行 -->
+      <div class="card">
+        <div class="card-title">🏆 今日熱銷排行</div>
+        <div class="bar-chart" id="hotItemsChart">
+          <div style="color:var(--text-muted);font-size:13px;text-align:center;padding:16px;">載入中…</div>
+        </div>
+      </div>
+
+      <!-- 尖峰時段分析 -->
+      <div class="card">
+        <div class="card-title">⏰ 尖峰時段分析（今日）</div>
+        <div style="margin-bottom:12px;">
+          <div class="peak-grid" id="peakGrid"></div>
+          <div class="peak-hours-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--sand)"></div>清淡</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#F5E6D3"></div>普通</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#DEB887"></div>忙碌</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--brown)"></div>尖峰</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+          🔥 今日尖峰：<strong style="color:var(--brown)">12:00–13:00、18:00–19:30</strong><br>
+          📈 午餐時段訂單：22 筆（佔46.8%）<br>
+          🌙 晚餐時段訂單：19 筆（佔40.4%）
+        </div>
+      </div>
+    </div>
+
+    <!-- 歷史點餐紀錄 -->
+    <div class="section">
+      <div class="section-title"><span>🧾</span>歷史訂單紀錄</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-header-title">今日訂單</div>
+          <div class="form-row">
+            <input type="date" id="filterDate" style="width:160px;">
+            <select id="filterStatus" style="width:130px;">
+              <option>全部狀態</option>
+              <option>已完成</option>
+              <option>準備中</option>
+              <option>未取餐</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="applyFilter()">🔍 篩選</button>
+            <button class="btn btn-outline btn-sm" onclick="loadOrders()">↻ 更新</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('addOrderModal')">＋ 新增</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>訂單編號</th>
+              <th>姓名</th>
+              <th>電話</th>
+              <th>品項</th>
+              <th>金額</th>
+              <th>取餐方式</th>
+              <th>時間</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody">
+            <tr><td>#0047</td><td>王小明</td><td>0912-345-678</td><td>三杯中卷×2、啤酒×2</td><td>$720</td><td><span class="badge badge-blue">內用</span></td><td>19:32</td><td><span class="badge badge-green">✓ 已完成</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+            <tr><td>#0046</td><td>林美玲</td><td>0933-222-111</td><td>極品螃蟹粉絲煲×1、烏龍茶×2</td><td>$600</td><td><span class="badge badge-brown">外帶</span></td><td>19:15</td><td><span class="badge badge-green">✓ 已完成</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+            <tr><td>#0045</td><td>陳大偉</td><td>0966-888-777</td><td>厚切月亮蝦餅×1、三杯土雞×1</td><td>$490</td><td><span class="badge badge-blue">內用</span></td><td>19:02</td><td><span class="badge badge-yellow">⏳ 準備中</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+            <tr><td>#0044</td><td>張淑芬</td><td>0912-111-333</td><td>剝皮辣椒雞湯×1、糖醋排骨×1、紅茶×1</td><td>$610</td><td><span class="badge badge-blue">內用</span></td><td>18:45</td><td><span class="badge badge-red">⚠ 未取餐</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+            <tr><td>#0043</td><td>黃志豪</td><td>0955-666-444</td><td>避風塘炒蟹×1</td><td>$450</td><td><span class="badge badge-brown">外帶</span></td><td>18:30</td><td><span class="badge badge-red">⚠ 未取餐</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+            <tr><td>#0042</td><td>吳麗華</td><td>0922-555-999</td><td>豆酥鱈魚×1、蚵仔酥×1、啤酒×3</td><td>$740</td><td><span class="badge badge-blue">內用</span></td><td>18:10</td><td><span class="badge badge-green">✓ 已完成</span></td><td><button class="btn btn-outline btn-sm">查看</button></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIP 顧客 -->
+    <div class="section">
+      <div class="section-title"><span>⭐</span>VIP 顧客清單</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-header-title">累積消費前排名</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addVipModal')">＋ 新增顧客</button>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>顧客姓名</th><th>電話</th><th>累積消費</th><th>消費次數</th><th>最後到訪</th><th>VIP等級</th><th>備註</th></tr>
+          </thead>
+          <tbody id="vipBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:16px;">載入中…</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- TAB 2: 庫存管理                          -->
+  <!-- ======================================== -->
+  <div class="tab-panel" id="tab-inventory">
+
+    <div class="stats-grid" style="margin-bottom:24px;">
+      <div class="stat-card green">
+        <div class="stat-label">庫存充足品項</div>
+        <div class="stat-value">28<span class="stat-unit">項</span></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">庫存偏低（需注意）</div>
+        <div class="stat-value">6<span class="stat-unit">項</span></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">需立即補貨</div>
+        <div class="stat-value">3<span class="stat-unit">項</span></div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">本週採購金額</div>
+        <div class="stat-value">$<span>14,200</span></div>
+      </div>
+    </div>
+
+    <!-- 生鮮食材 -->
+    <div class="section">
+      <div class="section-title"><span>🥩</span>生鮮食材</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-header-title">肉類 / 海鮮 / 蔬菜</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm">📋 匯出</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('addStockModal')">＋ 新增品項</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>品項名稱</th><th>類別</th><th>現有量</th><th>基準量</th><th>單位</th><th>存量狀態</th><th>到期日</th><th>供應商</th><th>操作</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>三點蟹</strong></td><td>海鮮</td>
+              <td>4</td><td>8</td><td>隻</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill red" style="width:50%"></div></div>
+                </div>
+                <span class="badge badge-red">⚠ 偏低</span>
+              </td>
+              <td style="color:var(--red);">06/12（明日）</td>
+              <td>東港王師傅</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+            <tr>
+              <td><strong>去骨雞腿</strong></td><td>肉類</td>
+              <td>3.2</td><td>5</td><td>kg</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill yellow" style="width:64%"></div></div>
+                </div>
+                <span class="badge badge-yellow">注意</span>
+              </td>
+              <td>06/13</td>
+              <td>永和肉品行</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+            <tr>
+              <td><strong>豬五花（滷用）</strong></td><td>肉類</td>
+              <td>8.5</td><td>6</td><td>kg</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill green" style="width:100%"></div></div>
+                </div>
+                <span class="badge badge-green">✓ 充足</span>
+              </td>
+              <td>06/14</td>
+              <td>永和肉品行</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+            <tr>
+              <td><strong>中卷（三杯用）</strong></td><td>海鮮</td>
+              <td>2.1</td><td>4</td><td>kg</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill red" style="width:52%"></div></div>
+                </div>
+                <span class="badge badge-red">⚠ 偏低</span>
+              </td>
+              <td>06/12（明日）</td>
+              <td>東港王師傅</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+            <tr>
+              <td><strong>九層塔</strong></td><td>蔬菜</td>
+              <td>0.3</td><td>1</td><td>kg</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill red" style="width:30%"></div></div>
+                </div>
+                <span class="badge badge-red">🚨 急需補</span>
+              </td>
+              <td>06/12（明日）</td>
+              <td>青果市場</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+            <tr>
+              <td><strong>薑（老薑）</strong></td><td>蔬菜</td>
+              <td>1.8</td><td>2</td><td>kg</td>
+              <td>
+                <div class="progress-wrap">
+                  <div class="progress-track" style="width:80px;"><div class="progress-fill yellow" style="width:90%"></div></div>
+                </div>
+                <span class="badge badge-green">✓ 充足</span>
+              </td>
+              <td>06/18</td>
+              <td>青果市場</td>
+              <td><button class="btn btn-outline btn-sm" onclick="openModal('editStockModal')">編輯</button></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 乾貨與調味料 -->
+    <div class="section">
+      <div class="section-title"><span>🫙</span>乾貨與調味料</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-header-title">乾貨 / 醬料 / 香料</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addStockModal')">＋ 新增</button>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>品項名稱</th><th>類別</th><th>現有量</th><th>基準量</th><th>單位</th><th>存量狀態</th><th>採購前置期</th><th>供應商</th><th>操作</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>醬油膏</strong></td><td>醬料</td><td>6</td><td>4</td><td>瓶</td><td><span class="badge badge-green">✓ 充足</span></td><td>2天</td><td>萬家香</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>米酒（三杯用）</strong></td><td>調味料</td><td>3</td><td>6</td><td>瓶</td><td><span class="badge badge-yellow">注意</span></td><td>1天</td><td>全聯採購</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>麻油</strong></td><td>調味料</td><td>2</td><td>4</td><td>瓶</td><td><span class="badge badge-yellow">注意</span></td><td>1天</td><td>廣達香</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>豆豉（豆酥用）</strong></td><td>乾貨</td><td>0.5</td><td>1</td><td>kg</td><td><span class="badge badge-red">🚨 急需補</span></td><td>3天</td><td>迪化街批發</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>辣豆瓣醬</strong></td><td>醬料</td><td>2</td><td>2</td><td>罐</td><td><span class="badge badge-green">✓ 充足</span></td><td>2天</td><td>郭家</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 耗材 -->
+    <div class="section">
+      <div class="section-title"><span>📦</span>耗材管理</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-header-title">外帶餐盒 / 提袋 / 其他</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addStockModal')">＋ 新增</button>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr><th>品項名稱</th><th>現有量</th><th>基準量</th><th>單位</th><th>存量狀態</th><th>供應商</th><th>聯絡電話</th><th>操作</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>品牌提袋（大）</strong></td><td>320</td><td>200</td><td>個</td><td><span class="badge badge-green">✓ 充足</span></td><td>金誠包材</td><td>02-2345-6789</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>外帶餐盒（單格）</strong></td><td>85</td><td>150</td><td>個</td><td><span class="badge badge-yellow">注意</span></td><td>金誠包材</td><td>02-2345-6789</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>外帶餐盒（雙格）</strong></td><td>42</td><td>150</td><td>個</td><td><span class="badge badge-red">⚠ 偏低</span></td><td>金誠包材</td><td>02-2345-6789</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>免洗筷</strong></td><td>600</td><td>400</td><td>雙</td><td><span class="badge badge-green">✓ 充足</span></td><td>全聯採購</td><td>—</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+            <tr><td><strong>密封貼紙</strong></td><td>50</td><td>200</td><td>張</td><td><span class="badge badge-red">🚨 急需補</span></td><td>金誠包材</td><td>02-2345-6789</td><td><button class="btn btn-outline btn-sm">編輯</button></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- TAB 3: 備料熬煮日誌                       -->
+  <!-- ======================================== -->
+  <div class="tab-panel" id="tab-prep">
+
+    <div class="stats-grid" style="margin-bottom:24px;">
+      <div class="stat-card green">
+        <div class="stat-label">今日完成批次</div>
+        <div class="stat-value">8<span class="stat-unit">批</span></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">進行中</div>
+        <div class="stat-value">2<span class="stat-unit">批</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本週熬煮總時數</div>
+        <div class="stat-value">42<span class="stat-unit">hr</span></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">待試味確認</div>
+        <div class="stat-value">1<span class="stat-unit">批</span></div>
+      </div>
+    </div>
+
+    <!-- 新增日誌 -->
+    <div class="section">
+      <div class="section-title"><span>➕</span>新增備料 / 熬煮紀錄</div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label>批次編號</label>
+            <input type="text" id="batchNo" placeholder="自動產生或手動輸入">
+          </div>
+          <div class="form-group">
+            <label>品項名稱 *</label>
+            <select id="prepItem">
+              <option value="">請選擇</option>
+              <option>滷肉（五花）</option>
+              <option>剝皮辣椒雞湯</option>
+              <option>排骨湯</option>
+              <option>黃金蜆湯</option>
+              <option>無花果排骨</option>
+              <option>醃製小菜－泡菜</option>
+              <option>醃製小菜－筍絲</option>
+              <option>醃製小菜－蘿蔔</option>
+              <option>其他（請備註）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>類型</label>
+            <select id="prepType">
+              <option>滷肉熬煮</option>
+              <option>湯品燉煮</option>
+              <option>醃製備料</option>
+              <option>前置備料</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>開始時間 *</label>
+            <input type="datetime-local" id="prepStart">
+          </div>
+          <div class="form-group">
+            <label>預計完成時間</label>
+            <input type="datetime-local" id="prepEnd">
+          </div>
+          <div class="form-group">
+            <label>負責人員 *</label>
+            <select id="prepStaff">
+              <option>阿嬤（主廚）</option>
+              <option>小明師傅</option>
+              <option>美玲助廚</option>
+              <option>阿豪學徒</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>數量</label>
+            <input type="text" id="prepQty" placeholder="例：3kg / 1鍋">
+          </div>
+          <div class="form-group">
+            <label>品質狀態</label>
+            <select id="prepStatus">
+              <option value="preparing">⏳ 進行中</option>
+              <option value="tasting">🧪 待試味</option>
+              <option value="ok">✅ 品質確認</option>
+              <option value="fail">❌ 未達標</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label>試味紀錄</label>
+            <textarea id="prepTaste" placeholder="描述風味、調整內容…"></textarea>
+          </div>
+          <div class="form-group">
+            <label>備註</label>
+            <textarea id="prepNote" placeholder="特殊情況、調整比例、溫度記錄…"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn btn-outline" onclick="clearPrepForm()">清除</button>
+          <button class="btn btn-primary" onclick="addPrepLog()">✓ 記錄送出</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 日誌列表 -->
+    <div class="section">
+      <div class="section-title"><span>📋</span>今日備料日誌</div>
+      <div id="prepLogList">
+        <div class="log-entry">
+          <div class="log-entry-header">
+            <div>
+              <div class="log-entry-title">🍖 滷肉（五花）熬煮 <span class="badge badge-green" style="margin-left:8px;">✅ 品質確認</span></div>
+              <div class="log-meta" style="margin-top:4px;">
+                <div class="log-meta-item">📋 B20250611-001</div>
+                <div class="log-meta-item">⏰ 07:00 → 10:30（3.5hr）</div>
+                <div class="log-meta-item">👨‍🍳 阿嬤（主廚）</div>
+                <div class="log-meta-item">⚖️ 5kg</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+              <button class="btn btn-outline btn-sm">編輯</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;color:var(--text-muted);">
+            <div><strong style="color:var(--text);">試味紀錄：</strong>鹹淡適中，滷汁色澤深褐，入口回甘，脂肪融化度佳。後加入半支肉桂增香。</div>
+            <div><strong style="color:var(--text);">品質確認：</strong>色、香、味三項皆通過。已分裝備用，冷藏保存至明日。</div>
+          </div>
+        </div>
+
+        <div class="log-entry" style="border-left:3px solid var(--yellow);">
+          <div class="log-entry-header">
+            <div>
+              <div class="log-entry-title">🍲 剝皮辣椒雞湯 <span class="badge badge-yellow" style="margin-left:8px;">🧪 待試味</span></div>
+              <div class="log-meta" style="margin-top:4px;">
+                <div class="log-meta-item">📋 B20250611-002</div>
+                <div class="log-meta-item">⏰ 14:00 → 17:30（進行中）</div>
+                <div class="log-meta-item">👨‍🍳 小明師傅</div>
+                <div class="log-meta-item">⚖️ 2鍋</div>
+              </div>
+            </div>
+            <button class="btn btn-green btn-sm">🧪 試味確認</button>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);">
+            <strong style="color:var(--text);">備註：</strong>使用玻璃罐剝皮辣椒（本辣），雞腿肉先汆燙。預計 17:30 完成，需試味後確認辣度與鹽分。
+          </div>
+        </div>
+
+        <div class="log-entry">
+          <div class="log-entry-header">
+            <div>
+              <div class="log-entry-title">🥗 醃製小菜－泡菜 <span class="badge badge-green" style="margin-left:8px;">✅ 品質確認</span></div>
+              <div class="log-meta" style="margin-top:4px;">
+                <div class="log-meta-item">📋 B20250611-003</div>
+                <div class="log-meta-item">⏰ 09:00 入味（24hr 後取出）</div>
+                <div class="log-meta-item">👨‍🍳 美玲助廚</div>
+                <div class="log-meta-item">⚖️ 3kg</div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm">編輯</button>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);">
+            <strong style="color:var(--text);">入味時間：</strong>24小時醃製，預計明日 09:00 完成。使用阿嬤私房泡菜配方（蘋果醋版）。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- TAB 4: 報廢與耗損紀錄                    -->
+  <!-- ======================================== -->
+  <div class="tab-panel" id="tab-waste">
+
+    <div class="stats-grid" style="margin-bottom:24px;">
+      <div class="stat-card red">
+        <div class="stat-label">今日報廢損失</div>
+        <div class="stat-value">$<span>680</span></div>
+        <div class="stat-change down">↑ 比昨日 +$220</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-label">本週報廢損失</div>
+        <div class="stat-value">$<span>2,340</span></div>
+        <div class="stat-change up">↓ 比上週 -$460</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">本月報廢損失</div>
+        <div class="stat-value">$<span>8,920</span></div>
+        <div class="stat-change">佔營收 3.8%</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">今日報廢筆數</div>
+        <div class="stat-value">4<span class="stat-unit">筆</span></div>
+      </div>
+    </div>
+
+    <!-- 新增報廢紀錄 -->
+    <div class="section">
+      <div class="section-title"><span>➕</span>新增報廢 / 耗損紀錄</div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:14px;">
+          <div class="form-group">
+            <label>報廢日期 *</label>
+            <input type="date" id="wasteDate">
+          </div>
+          <div class="form-group">
+            <label>報廢時間</label>
+            <input type="time" id="wasteTime">
+          </div>
+          <div class="form-group">
+            <label>品項名稱 *</label>
+            <input type="text" id="wasteItem" placeholder="例：三點蟹、九層塔">
+          </div>
+          <div class="form-group">
+            <label>報廢類別 *</label>
+            <select id="wasteType">
+              <option value="">請選擇</option>
+              <option value="expired">食材過期</option>
+              <option value="burn">烹調失誤－燒焦</option>
+              <option value="seasoning">烹調失誤－調味錯誤</option>
+              <option value="quality">品質不符</option>
+              <option value="package">包材損壞</option>
+              <option value="other">其他耗損</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>報廢數量 *</label>
+            <input type="text" id="wasteQty" placeholder="例：1.5kg、3個">
+          </div>
+          <div class="form-group">
+            <label>預估損失金額</label>
+            <input type="number" id="wasteLoss" placeholder="$" min="0">
+          </div>
+          <div class="form-group">
+            <label>負責人員</label>
+            <select id="wasteStaff">
+              <option>阿嬤（主廚）</option>
+              <option>小明師傅</option>
+              <option>美玲助廚</option>
+              <option>阿豪學徒</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>報廢原因說明</label>
+          <textarea id="wasteNote" placeholder="詳細說明報廢原因，有助於改善流程…"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn btn-outline">清除</button>
+          <button class="btn btn-red" onclick="addWasteLog()">🗑️ 記錄報廢</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 耗損追蹤表 -->
+      <div class="section">
+        <div class="section-title"><span>📋</span>今日耗損追蹤</div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr><th>時間</th><th>品項</th><th>類別</th><th>數量</th><th>損失</th><th>負責人</th></tr>
+            </thead>
+            <tbody id="wasteBody">
+              <tr><td>08:30</td><td>三點蟹</td><td><span class="badge badge-red">食材過期</span></td><td>1隻</td><td style="color:var(--red);font-weight:600;">$180</td><td>阿嬤</td></tr>
+              <tr><td>11:20</td><td>九層塔</td><td><span class="badge badge-yellow">品質不符</span></td><td>0.2kg</td><td style="color:var(--red);font-weight:600;">$60</td><td>小明師傅</td></tr>
+              <tr><td>12:45</td><td>糖醋排骨</td><td><span class="badge badge-red">烹調失誤—調味錯誤</span></td><td>1份</td><td style="color:var(--red);font-weight:600;">$220</td><td>阿豪學徒</td></tr>
+              <tr><td>15:10</td><td>外帶餐盒雙格</td><td><span class="badge badge-brown">包材損壞</span></td><td>5個</td><td style="color:var(--red);font-weight:600;">$220</td><td>美玲助廚</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 報廢原因分析 -->
+      <div class="section">
+        <div class="section-title"><span>📊</span>本月報廢原因分析</div>
+        <div class="card">
+          <div class="bar-chart">
+            <div class="bar-row">
+              <div class="bar-label">食材過期</div>
+              <div class="bar-track"><div class="bar-fill brown" style="width:62%">$3,120</div></div>
+              <div class="bar-num">35%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">烹調失誤</div>
+              <div class="bar-track"><div class="bar-fill" style="width:45%;background:var(--red);">$2,240</div></div>
+              <div class="bar-num">25%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">品質不符</div>
+              <div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--yellow);">$1,340</div></div>
+              <div class="bar-num">15%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">包材損壞</div>
+              <div class="bar-track"><div class="bar-fill blue" style="width:15%">$980</div></div>
+              <div class="bar-num">11%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">其他耗損</div>
+              <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--text-muted);">$660</div></div>
+              <div class="bar-num">7%</div>
+            </div>
+          </div>
+          <div class="divider" style="margin:16px 0;"></div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.9;">
+            💡 <strong style="color:var(--text);">改善建議：</strong><br>
+            ① 生鮮採購量建議按週調整，減少過期損耗<br>
+            ② 學徒上線前加強調味訓練，降低烹調失誤率<br>
+            ③ 外帶餐盒存放位置調整，減少壓損
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- TAB 5: 顧客回饋                          -->
+  <!-- ======================================== -->
+  <div class="tab-panel" id="tab-feedback">
+
+    <div class="stats-grid" style="margin-bottom:24px;">
+      <div class="stat-card yellow">
+        <div class="stat-label">本月平均滿意度</div>
+        <div class="stat-value">4.6<span class="stat-unit">/ 5.0</span></div>
+        <div class="stat-change up">↑ 比上月 +0.2</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">收到回饋數</div>
+        <div class="stat-value">83<span class="stat-unit">筆</span></div>
+        <div class="stat-change up">本月累計</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">「感受到家的味道」</div>
+        <div class="stat-value">91<span class="stat-unit">%</span></div>
+        <div class="stat-change up">回答「是」的比例</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">待處理客訴</div>
+        <div class="stat-value">2<span class="stat-unit">則</span></div>
+        <div class="stat-change down">需盡速回應</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 滿意度分布 -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">⭐ 滿意度分布（本月）</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">⭐⭐⭐⭐⭐ 5分</div>
+            <div class="bar-track"><div class="bar-fill green" style="width:68%">56筆</div></div>
+            <div class="bar-num">67%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">⭐⭐⭐⭐ 4分</div>
+            <div class="bar-track"><div class="bar-fill" style="width:24%;background:var(--brown-light)">20筆</div></div>
+            <div class="bar-num">24%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">⭐⭐⭐ 3分</div>
+            <div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--yellow)">5筆</div></div>
+            <div class="bar-num">6%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">⭐⭐ 2分以下</div>
+            <div class="bar-track"><div class="bar-fill" style="width:2%;background:var(--red)">2筆</div></div>
+            <div class="bar-num">2%</div>
+          </div>
+        </div>
+        <div class="divider" style="margin:16px 0;"></div>
+        <div style="font-size:13px;color:var(--text-muted);">
+          ❤️ 「感受到家的味道嗎？」<br>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+            <div style="flex:1;height:10px;background:var(--sand);border-radius:5px;overflow:hidden;">
+              <div style="width:91%;height:100%;background:var(--green);border-radius:5px;"></div>
+            </div>
+            <span style="font-weight:700;color:var(--green);font-size:15px;">91% 是</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 客訴分類 -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">📌 客訴與建議分類</div>
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">等待時間</div>
+            <div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--yellow)">8則</div></div>
+            <div class="bar-num">33%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">份量問題</div>
+            <div class="bar-track"><div class="bar-fill brown" style="width:35%">5則</div></div>
+            <div class="bar-num">21%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">口味調整</div>
+            <div class="bar-track"><div class="bar-fill brown" style="width:28%">4則</div></div>
+            <div class="bar-num">17%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">服務態度</div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--red)">3則</div></div>
+            <div class="bar-num">13%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">食材新鮮度</div>
+            <div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--red)">2則</div></div>
+            <div class="bar-num">8%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">其他建議</div>
+            <div class="bar-track"><div class="bar-fill blue" style="width:10%">2則</div></div>
+            <div class="bar-num">8%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 回饋列表 -->
+    <div class="section">
+      <div class="section-title"><span>💬</span>顧客回饋列表</div>
+      <div class="table-wrap" style="margin-bottom:16px;">
+        <div class="table-header">
+          <div class="table-header-title">最新回饋</div>
+          <div style="display:flex;gap:8px;">
+            <select style="width:130px;">
+              <option>全部類別</option>
+              <option>正面回饋</option>
+              <option>客訴</option>
+              <option>建議</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="openModal('addFeedbackModal')">＋ 新增回饋</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="feedbackList">
+        <div class="feedback-card">
+          <div class="feedback-header">
+            <div>
+              <div class="feedback-name">王小明 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">2025-06-11 20:15</span></div>
+              <div class="feedback-score">
+                <span class="star-display">★★★★★</span>
+                <span style="font-size:13px;margin-left:4px;color:var(--text-muted);">5.0 分</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="badge badge-green">✓ 已回覆</span>
+              <span style="font-size:11px;color:var(--green);">感受到家的味道 ✓</span>
+            </div>
+          </div>
+          <div class="feedback-text">三杯中卷真的超好吃！九層塔香氣十足，醬汁收得剛好，比外面許多餐廳都好。下次還想再來試試螃蟹粉絲煲！</div>
+          <span class="feedback-tag badge-green badge">正面回饋</span>
+        </div>
+
+        <div class="feedback-card" style="border-left:3px solid var(--red);">
+          <div class="feedback-header">
+            <div>
+              <div class="feedback-name">張淑芬 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">2025-06-11 19:50</span></div>
+              <div class="feedback-score">
+                <span class="star-display">★★★☆☆</span>
+                <span style="font-size:13px;margin-left:4px;color:var(--text-muted);">3.0 分</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="badge badge-red">⚠ 待處理</span>
+              <span style="font-size:11px;color:var(--red);">感受到家的味道 ✗</span>
+            </div>
+          </div>
+          <div class="feedback-text">等了快40分鐘才上菜，期間都沒人來說明狀況。糖醋排骨的口味比上次鹹，希望可以保持一致性。整體環境不錯，但效率有待加強。</div>
+          <span class="feedback-tag badge-red badge">客訴</span>
+          <span class="feedback-tag badge-yellow badge" style="margin-left:4px;">等待時間</span>
+          <span class="feedback-tag badge-yellow badge" style="margin-left:4px;">口味調整</span>
+          <div style="margin-top:10px;padding:10px;background:var(--sand-pale);border-radius:8px;font-size:12px;">
+            <strong style="color:var(--brown);">🔔 待辦：</strong>請主廚確認糖醋排骨醬汁比例標準化；出餐等待超過20分鐘時需主動告知顧客。
+          </div>
+        </div>
+
+        <div class="feedback-card">
+          <div class="feedback-header">
+            <div>
+              <div class="feedback-name">陳大偉 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">2025-06-10 20:30</span></div>
+              <div class="feedback-score">
+                <span class="star-display">★★★★★</span>
+                <span style="font-size:13px;margin-left:4px;color:var(--text-muted);">5.0 分</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="badge badge-green">✓ 已回覆</span>
+              <span style="font-size:11px;color:var(--green);">感受到家的味道 ✓</span>
+            </div>
+          </div>
+          <div class="feedback-text">每次帶家人來都感覺很溫馨，就像在自己家吃飯一樣。無花果排骨湯的甜度剛好，小孩也很喜歡，謝謝阿嬤的用心！</div>
+          <span class="feedback-tag badge-green badge">正面回饋</span>
+        </div>
+
+        <div class="feedback-card" style="border-left:3px solid var(--red);">
+          <div class="feedback-header">
+            <div>
+              <div class="feedback-name">匿名顧客 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">2025-06-09 13:15</span></div>
+              <div class="feedback-score">
+                <span class="star-display">★★☆☆☆</span>
+                <span style="font-size:13px;margin-left:4px;color:var(--text-muted);">2.0 分</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+              <span class="badge badge-red">⚠ 待處理</span>
+              <span style="font-size:11px;color:var(--red);">感受到家的味道 ✗</span>
+            </div>
+          </div>
+          <div class="feedback-text">中午訂外帶，收到的時候湯品已經溢出來了，餐盒蓋子沒扣好。希望外帶打包能更注意一下。</div>
+          <span class="feedback-tag badge-red badge">客訴</span>
+          <span class="feedback-tag badge-yellow badge" style="margin-left:4px;">包裝問題</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ======================================== -->
+<!-- MODALS                                   -->
+<!-- ======================================== -->
+
+<!-- 訂單詳情 -->
+<div class="modal-overlay" id="orderDetailModal">
+  <div class="modal">
+    <div class="modal-title">🧾 訂單詳情</div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- 新增訂單 -->
+<div class="modal-overlay" id="addOrderModal">
+  <div class="modal">
+    <div class="modal-title">🧾 新增訂單紀錄</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>姓名 *</label><input type="text" placeholder="王小明"></div>
+      <div class="form-group"><label>電話 *</label><input type="tel" placeholder="0912-345-678"></div>
+      <div class="form-group"><label>取餐方式</label><select><option>內用</option><option>外帶</option></select></div>
+      <div class="form-group"><label>時間</label><input type="time"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>訂購品項</label><textarea placeholder="三杯中卷×2、啤酒×2…"></textarea></div>
+      <div class="form-group"><label>金額</label><input type="number" placeholder="$0"></div>
+      <div class="form-group"><label>狀態</label><select><option>準備中</option><option>已完成</option><option>未取餐</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addOrderModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addOrderModal');showToast('訂單已新增')">✓ 確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增庫存 -->
+<div class="modal-overlay" id="addStockModal">
+  <div class="modal">
+    <div class="modal-title">📦 新增庫存品項</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>品項名稱 *</label><input type="text" placeholder="三點蟹"></div>
+      <div class="form-group"><label>類別</label><select><option>海鮮</option><option>肉類</option><option>蔬菜</option><option>乾貨</option><option>醬料</option><option>調味料</option><option>耗材</option></select></div>
+      <div class="form-group"><label>現有量 *</label><input type="number" placeholder="0"></div>
+      <div class="form-group"><label>基準庫存量</label><input type="number" placeholder="0"></div>
+      <div class="form-group"><label>單位</label><input type="text" placeholder="kg / 個 / 瓶"></div>
+      <div class="form-group"><label>採購前置期</label><input type="text" placeholder="例：2天"></div>
+      <div class="form-group"><label>供應商名稱</label><input type="text" placeholder="東港王師傅"></div>
+      <div class="form-group"><label>供應商電話</label><input type="tel" placeholder="0912-000-000"></div>
+      <div class="form-group"><label>到期日</label><input type="date"></div>
+      <div class="form-group"><label>備註</label><input type="text" placeholder="儲存注意事項…"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addStockModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addStockModal');showToast('品項已新增')">✓ 確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯庫存 -->
+<div class="modal-overlay" id="editStockModal">
+  <div class="modal">
+    <div class="modal-title">✏️ 編輯庫存品項</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>品項名稱</label><input type="text" value="三點蟹"></div>
+      <div class="form-group"><label>類別</label><select><option selected>海鮮</option><option>肉類</option></select></div>
+      <div class="form-group"><label>現有量 *</label><input type="number" value="4"></div>
+      <div class="form-group"><label>基準庫存量</label><input type="number" value="8"></div>
+      <div class="form-group"><label>單位</label><input type="text" value="隻"></div>
+      <div class="form-group"><label>到期日</label><input type="date" value="2025-06-12"></div>
+      <div class="form-group"><label>供應商</label><input type="text" value="東港王師傅"></div>
+      <div class="form-group"><label>供應商電話</label><input type="tel" placeholder="0912-000-000"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('editStockModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('editStockModal');showToast('庫存已更新')">✓ 儲存更新</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增 VIP -->
+<div class="modal-overlay" id="addVipModal">
+  <div class="modal">
+    <div class="modal-title">⭐ 新增顧客資料</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>姓名 *</label><input type="text" placeholder="王小明"></div>
+      <div class="form-group"><label>電話 *</label><input type="tel" placeholder="0912-345-678"></div>
+      <div class="form-group"><label>累積消費</label><input type="number" placeholder="$0"></div>
+      <div class="form-group"><label>VIP等級</label><select><option>一般會員</option><option>銀卡</option><option>金卡</option></select></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>備註（口味偏好、過敏等）</label><textarea placeholder="不吃香菜、花生過敏…"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addVipModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addVipModal');showToast('顧客已新增')">✓ 確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增回饋 -->
+<div class="modal-overlay" id="addFeedbackModal">
+  <div class="modal">
+    <div class="modal-title">💬 新增顧客回饋</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>顧客姓名</label><input type="text" placeholder="王小明（可匿名）"></div>
+      <div class="form-group"><label>聯絡電話</label><input type="tel" placeholder="（選填）"></div>
+      <div class="form-group"><label>滿意度評分 *</label>
+        <select>
+          <option>5 ★★★★★ 非常滿意</option>
+          <option>4 ★★★★☆ 滿意</option>
+          <option>3 ★★★☆☆ 普通</option>
+          <option>2 ★★☆☆☆ 不滿意</option>
+          <option>1 ★☆☆☆☆ 非常不滿意</option>
+        </select>
+      </div>
+      <div class="form-group"><label>感受到家的味道？</label>
+        <select><option>是</option><option>否</option><option>不確定</option></select>
+      </div>
+      <div class="form-group"><label>回饋類別</label>
+        <select><option>正面回饋</option><option>客訴</option><option>建議</option></select>
+      </div>
+      <div class="form-group"><label>日期</label><input type="date"></div>
+      <div class="form-group" style="grid-column:1/-1;"><label>回饋內容 *</label><textarea placeholder="請輸入顧客的回饋內容…"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addFeedbackModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('addFeedbackModal');showToast('回饋已記錄')">✓ 確認新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// ★ GAS URL（與 kitchen.html 同一支）
+// =============================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4DmSWFdfSWcaF0FUxl5KajFcowdFM5aL1Y2L26PMke7HjF0-1fWaE2J_zuHJxuKJi/exec';
+
+// ---- Time ----
+function updateTime() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('zh-TW', { hour12: false });
+  document.getElementById('liveTime').textContent = t;
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// Set today's date on date inputs
+const today = new Date().toISOString().split('T')[0];
+document.querySelectorAll('input[type="date"]').forEach(el => {
+  if (!el.value) el.value = today;
+});
+document.getElementById('filterDate').value = today;
+
+// ---- Tabs ----
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'sales') loadOrders();
+}
+
+// ---- 讀取訂單 ----
+let allOrders = [];
+
+async function loadOrders() {
+  const tbody = document.getElementById('ordersBody');
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">⏳ 載入中…</td></tr>';
+
+  try {
+    const res = await fetch(GAS_URL, { method: 'GET', mode: 'cors' });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    allOrders = data.orders.reverse(); // 最新在前
+    renderOrders(allOrders);
+    updateDashboard(allOrders);
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--red);padding:20px;">⚠ 讀取失敗：請確認 GAS 已重新部署（支援 GET）<br><small>${err.message}</small></td></tr>`;
+  }
+}
+
+function renderOrders(orders) {
+  const tbody = document.getElementById('ordersBody');
+  const filterDate = document.getElementById('filterDate').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+
+  let filtered = orders;
+  if (filterDate) filtered = filtered.filter(o => String(o.date) === filterDate);
+  if (filterStatus && filterStatus !== '全部狀態') {
+    const map = { '已完成':'done', '準備中':'pending', '未取餐':'unclaimed' };
+    filtered = filtered.filter(o => o.status === (map[filterStatus] || filterStatus));
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">此日期無訂單紀錄</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(o => {
+    const statusBadge = o.status === 'done'
+      ? '<span class="badge badge-green">✓ 已完成</span>'
+      : o.status === 'pending'
+      ? '<span class="badge badge-yellow">⏳ 準備中</span>'
+      : '<span class="badge badge-red">⚠ 未取餐</span>';
+    const pickupBadge = o.pickup && o.pickup.includes('內')
+      ? '<span class="badge badge-blue">內用</span>'
+      : '<span class="badge badge-brown">外帶</span>';
+    const total = Number(o.total) || 0;
+    return `<tr>
+      <td><strong>${o.id || '—'}</strong></td>
+      <td>${o.name || '—'}</td>
+      <td>${o.phone || '—'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.items || ''}">${o.items || '—'}</td>
+      <td style="font-weight:600;color:var(--brown);">$${total.toLocaleString()}</td>
+      <td>${pickupBadge}</td>
+      <td>${o.arrTime || o.time || '—'}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="showOrderDetail(${JSON.stringify(o).replace(/"/g,'&quot;')})">查看</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateDashboard(orders) {
+  // 今日訂單
+  const todayOrders = orders.filter(o => String(o.date) === today);
+  const revenue = todayOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const count = todayOrders.length;
+  const avg = count > 0 ? Math.round(revenue / count) : 0;
+  const unclaimed = todayOrders.filter(o => o.status === 'unclaimed').length;
+
+  document.getElementById('todayRevenue').textContent = revenue.toLocaleString();
+  document.getElementById('todayOrders').textContent = count;
+  document.getElementById('avgOrder').textContent = avg.toLocaleString();
+  document.getElementById('unclaimed').textContent = unclaimed;
+
+  // 熱銷排行
+  const itemCount = {};
+  const itemRevenue = {};
+  todayOrders.forEach(o => {
+    if (!o.items) return;
+    o.items.split('、').forEach(seg => {
+      const m = seg.match(/^(.+?)\s*x(\d+)$/);
+      if (m) {
+        const name = m[1].trim();
+        const qty = parseInt(m[2]);
+        itemCount[name] = (itemCount[name] || 0) + qty;
+      }
+    });
+  });
+  const sorted = Object.entries(itemCount).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const maxQty = sorted[0] ? sorted[0][1] : 1;
+  const barChart = document.getElementById('hotItemsChart');
+  if (barChart && sorted.length > 0) {
+    barChart.innerHTML = sorted.map(([name, qty]) => `
+      <div class="bar-row">
+        <div class="bar-label" style="font-size:11px;">${name.length > 6 ? name.slice(0,6)+'…' : name}</div>
+        <div class="bar-track"><div class="bar-fill brown" style="width:${Math.round(qty/maxQty*100)}%">×${qty}</div></div>
+        <div class="bar-num">${qty}份</div>
+      </div>`).join('');
+  }
+
+  // 更新 VIP 清單（依累積消費排序）
+  const custMap = {};
+  orders.forEach(o => {
+    if (!o.name || !o.phone) return;
+    const key = o.phone;
+    if (!custMap[key]) custMap[key] = { name: o.name, phone: o.phone, total: 0, count: 0, last: '' };
+    custMap[key].total += Number(o.total) || 0;
+    custMap[key].count++;
+    if (!custMap[key].last || o.date > custMap[key].last) custMap[key].last = o.date;
+  });
+  const vips = Object.values(custMap).sort((a,b) => b.total - a.total).slice(0, 10);
+  const vipBody = document.getElementById('vipBody');
+  if (vipBody) {
+    vipBody.innerHTML = vips.map(v => {
+      const level = v.total >= 20000
+        ? '<span class="badge badge-yellow">👑 金卡</span>'
+        : v.total >= 8000
+        ? '<span class="badge badge-brown">🥈 銀卡</span>'
+        : '<span class="badge badge-blue">一般</span>';
+      return `<tr>
+        <td>${v.name}</td>
+        <td>${v.phone}</td>
+        <td style="font-weight:700;color:var(--brown);">$${v.total.toLocaleString()}</td>
+        <td>${v.count}次</td>
+        <td>${v.last || '—'}</td>
+        <td>${level}</td>
+        <td></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+// 訂單詳情 Modal
+function showOrderDetail(o) {
+  document.getElementById('detailContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px;">
+      <div><div style="font-size:11px;color:var(--text-muted);">訂單編號</div><div style="font-weight:700;color:var(--brown);font-size:18px;">${o.id}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">下單時間</div><div>${o.time}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">姓名</div><div><strong>${o.name}</strong></div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">電話</div><div>${o.phone}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">用餐人數</div><div>${o.people}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">取餐方式</div><div>${o.pickup}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">日期</div><div>${o.date}</div></div>
+      <div><div style="font-size:11px;color:var(--text-muted);">預計時間</div><div>${o.arrTime}</div></div>
+    </div>
+    <div style="margin-top:14px;padding:14px;background:var(--sand-pale);border-radius:10px;">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">點餐品項</div>
+      <div style="font-size:14px;line-height:2;">${(o.items||'').split('、').map(i=>`• ${i}`).join('<br>')}</div>
+    </div>
+    ${o.note ? `<div style="margin-top:10px;padding:10px;background:var(--yellow-light);border-radius:8px;font-size:13px;">📝 備註：${o.note}</div>` : ''}
+    <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:20px;font-weight:700;font-family:'Noto Serif TC',serif;color:var(--brown-dark);">合計 $${Number(o.total||0).toLocaleString()}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-green btn-sm" onclick="closeModal('orderDetailModal');showToast('狀態已更新為已完成')">✓ 已完成</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('orderDetailModal')">關閉</button>
+      </div>
+    </div>
+  `;
+  openModal('orderDetailModal');
+}
+
+// 篩選
+function applyFilter() {
+  renderOrders(allOrders);
+  showToast('已套用篩選');
+}
+
+// 初始載入
+window.addEventListener('DOMContentLoaded', () => {
+  loadOrders();
+  setInterval(loadOrders, 60000); // 每分鐘自動更新
+});
+
+// ---- Modal ----
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+// ---- Toast ----
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---- Peak Hours Heatmap ----
+const hours = [10,11,12,13,14,15,16,17,18,19,20,21];
+const heatData = { 10:1, 11:2, 12:4, 13:4, 14:2, 15:1, 16:1, 17:2, 18:3, 19:4, 20:3, 21:2 };
+const grid = document.getElementById('peakGrid');
+hours.forEach(h => {
+  const cell = document.createElement('div');
+  cell.className = 'peak-cell hot-' + (heatData[h] || 0);
+  cell.textContent = h;
+  cell.title = h + ':00 - 訂單量' + ['','少','普通','忙碌','尖峰'][heatData[h] || 0];
+  grid.appendChild(cell);
+});
+
+// ---- Add Prep Log ----
+let batchCounter = 4;
+function addPrepLog() {
+  const item = document.getElementById('prepItem').value;
+  const type = document.getElementById('prepType').value;
+  const staff = document.getElementById('prepStaff').value;
+  const qty = document.getElementById('prepQty').value;
+  const status = document.getElementById('prepStatus').value;
+  const taste = document.getElementById('prepTaste').value;
+  const note = document.getElementById('prepNote').value;
+
+  if (!item) { showToast('請選擇品項'); return; }
+
+  const badges = {
+    preparing: '<span class="badge badge-yellow">⏳ 進行中</span>',
+    tasting: '<span class="badge badge-yellow">🧪 待試味</span>',
+    ok: '<span class="badge badge-green">✅ 品質確認</span>',
+    fail: '<span class="badge badge-red">❌ 未達標</span>'
+  };
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  const bNo = 'B' + today.replace(/-/g,'') + '-00' + (++batchCounter);
+
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `
+    <div class="log-entry-header">
+      <div>
+        <div class="log-entry-title">🍳 ${type}：${item} ${badges[status]}</div>
+        <div class="log-meta" style="margin-top:4px;">
+          <div class="log-meta-item">📋 ${bNo}</div>
+          <div class="log-meta-item">⏰ ${timeStr} 新增</div>
+          <div class="log-meta-item">👨‍🍳 ${staff}</div>
+          ${qty ? `<div class="log-meta-item">⚖️ ${qty}</div>` : ''}
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm">編輯</button>
+    </div>
+    ${(taste || note) ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;color:var(--text-muted);">
+      ${taste ? `<div><strong style="color:var(--text);">試味紀錄：</strong>${taste}</div>` : ''}
+      ${note ? `<div><strong style="color:var(--text);">備註：</strong>${note}</div>` : ''}
+    </div>` : ''}
+  `;
+  document.getElementById('prepLogList').prepend(entry);
+  clearPrepForm();
+  showToast('備料日誌已記錄');
+}
+
+function clearPrepForm() {
+  ['prepItem','prepType','prepStaff','prepStatus'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  ['prepQty','prepTaste','prepNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('batchNo').value = '';
+}
+
+// ---- Add Waste Log ----
+function addWasteLog() {
+  const item = document.getElementById('wasteItem').value.trim();
+  const type = document.getElementById('wasteType').value;
+  const qty = document.getElementById('wasteQty').value.trim();
+  const loss = document.getElementById('wasteLoss').value;
+  const staff = document.getElementById('wasteStaff').value;
+  const wTime = document.getElementById('wasteTime').value;
+
+  if (!item || !type || !qty) { showToast('請填寫必填欄位'); return; }
+
+  const typeLabelMap = {
+    expired:'食材過期', burn:'烹調失誤—燒焦',
+    seasoning:'烹調失誤—調味錯誤', quality:'品質不符',
+    package:'包材損壞', other:'其他耗損'
+  };
+  const badgeMap = {
+    expired:'badge-red', burn:'badge-red', seasoning:'badge-red',
+    quality:'badge-yellow', package:'badge-brown', other:'badge-brown'
+  };
+  const now = new Date();
+  const tStr = wTime || now.toLocaleTimeString('zh-TW',{hour12:false,hour:'2-digit',minute:'2-digit'});
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>${tStr}</td>
+    <td>${item}</td>
+    <td><span class="badge ${badgeMap[type]}">${typeLabelMap[type]}</span></td>
+    <td>${qty}</td>
+    <td style="color:var(--red);font-weight:600;">${loss ? '$'+Number(loss).toLocaleString() : '—'}</td>
+    <td>${staff}</td>
+  `;
+  document.getElementById('wasteBody').prepend(row);
+  ['wasteItem','wasteQty','wasteLoss','wasteNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wasteType').value = '';
+  document.getElementById('wasteTime').value = '';
+  showToast('報廢紀錄已記錄');
+}
+</script>
+</body>
+</html>
