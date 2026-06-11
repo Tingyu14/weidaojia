@@ -1445,10 +1445,16 @@ async function loadOrders() {
   tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">⏳ 載入中…</td></tr>';
 
   try {
-    const res = await fetch(GAS_URL, { method: 'GET', mode: 'cors' });
+    const res = await fetch(GAS_URL + '?action=getOrders', { method: 'GET' });
     const data = await res.json();
     if (!data.success) throw new Error(data.error);
-    allOrders = data.orders.reverse(); // 最新在前
+    allOrders = data.orders
+      .filter(o => o.id && o.id !== '測試' && o.name && o.name !== '測試姓名' && o.items)
+      .map(o => ({
+        ...o,
+        arrTime: o.apptTime || o.arrTime || '',
+        date: o.date ? String(o.date).split('T')[0].replace(/\//g,'-') : ''
+      })).reverse();
     renderOrders(allOrders);
     updateDashboard(allOrders);
   } catch(err) {
